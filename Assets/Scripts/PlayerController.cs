@@ -6,78 +6,82 @@ public class PlayerController : MonoBehaviour
 {
     public Vector3 startingPosition;
     public float speed = 5f;
-    public bool isInverted;
+    public bool isInverted, inputEnabled;
     public int playerDirection;
-    public Transform tileCheck;
-    public LayerMask obstructionTile, waterTile, upTile, downTile, leftTile, rightTile, teleporterTile, inverterTile;
+    public Transform destinationTile;
+    public LayerMask obstructionTile, slidingTile, upTile, downTile, leftTile, rightTile, teleporterTile, inverterTile;
     public Animator anime;
     // Start is called before the first frame update
     void Start()
     {
-        tileCheck.parent = null;
+        destinationTile.parent = null;
         playerDirection = 1;
         isInverted = false;
         startingPosition = transform.position;
+        inputEnabled = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.position = Vector3.MoveTowards(transform.position, tileCheck.position, speed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, tileCheck.position) == 0f)
+        transform.position = Vector3.MoveTowards(transform.position, destinationTile.position, speed * Time.deltaTime);
+        if (Vector3.Distance(transform.position, destinationTile.position) == 0f)
         {
             anime.ResetTrigger("isMoving");
-            CheckCurrentTile();
-            if ((Input.GetKey(KeyCode.LeftArrow)) || (Input.GetKey(KeyCode.A)))
+            TriggerEffect();
+            if(inputEnabled)
             {
-                if (!isInverted)
+                if ((Input.GetKey(KeyCode.LeftArrow)) || (Input.GetKey(KeyCode.A)))
                 {
-                    ChangeDirection(2, false);
-                    Movement(new Vector3(-1f, 0f, 0f));
+                    if (!isInverted)
+                    {
+                        ChangeDirection(2, false);
+                        Movement(new Vector3(-1f, 0f, 0f));
+                    }
+                    else 
+                    {
+                        ChangeDirection(4, false);
+                        Movement(new Vector3(1f, 0f, 0f));
+                    }
                 }
-                else 
+                else if ((Input.GetKey(KeyCode.RightArrow)) || (Input.GetKey(KeyCode.D)))
                 {
-                    ChangeDirection(4, false);
-                    Movement(new Vector3(1f, 0f, 0f));
+                    if (!isInverted)
+                    {
+                        ChangeDirection(4, false);
+                        Movement(new Vector3(1f, 0f, 0f));
+                    }
+                    else 
+                    {
+                        ChangeDirection(2, false);
+                        Movement(new Vector3(-1f, 0f, 0f));
+                    }
                 }
-            }
-            else if ((Input.GetKey(KeyCode.RightArrow)) || (Input.GetKey(KeyCode.D)))
-            {
-                if (!isInverted)
+                else if ((Input.GetKey(KeyCode.UpArrow)) || (Input.GetKey(KeyCode.W)))
                 {
-                    ChangeDirection(4, false);
-                    Movement(new Vector3(1f, 0f, 0f));
+                    if (!isInverted)
+                    {
+                        ChangeDirection(3, false);
+                        Movement(new Vector3(0f, 1f, 0f));
+                    }
+                    else 
+                    {
+                        ChangeDirection(1, false);
+                        Movement(new Vector3(0f, -1f, 0f));
+                    }
                 }
-                else 
+                else if ((Input.GetKey(KeyCode.DownArrow)) || (Input.GetKey(KeyCode.S)))
                 {
-                    ChangeDirection(2, false);
-                    Movement(new Vector3(-1f, 0f, 0f));
-                }
-            }
-            else if ((Input.GetKey(KeyCode.UpArrow)) || (Input.GetKey(KeyCode.W)))
-            {
-                if (!isInverted)
-                {
-                    ChangeDirection(3, false);
-                    Movement(new Vector3(0f, 1f, 0f));
-                }
-                else 
-                {
-                    ChangeDirection(1, false);
-                    Movement(new Vector3(0f, -1f, 0f));
-                }
-            }
-            else if ((Input.GetKey(KeyCode.DownArrow)) || (Input.GetKey(KeyCode.S)))
-            {
-                if (!isInverted)
-                {
-                    ChangeDirection(1, false);
-                    Movement(new Vector3(0f, -1f, 0f));
-                }
-                else 
-                {
-                    ChangeDirection(3, false);
-                    Movement(new Vector3(0f, 1f, 0f));
+                    if (!isInverted)
+                    {
+                        ChangeDirection(1, false);
+                        Movement(new Vector3(0f, -1f, 0f));
+                    }
+                    else 
+                    {
+                        ChangeDirection(3, false);
+                        Movement(new Vector3(0f, 1f, 0f));
+                    }
                 }
             }
         }
@@ -96,56 +100,62 @@ public class PlayerController : MonoBehaviour
         anime.SetInteger("playerDirection", playerDirection);
     }
 
-    private void CheckCurrentTile()
+    private void TriggerEffect()
     {
-        if(Physics2D.OverlapCircle(tileCheck.position, 0.1f, inverterTile))
+        if(Physics2D.OverlapCircle(destinationTile.position, 0.1f, inverterTile))
         {
             isInverted = !isInverted;
         }
-        else if(Physics2D.OverlapCircle(tileCheck.position, 0.1f, upTile))
+        else if(Physics2D.OverlapCircle(destinationTile.position, 0.1f, upTile))
         {
+            inputEnabled = false;
             ChangeDirection(3,false);
             Movement(new Vector3(0f, 1f, 0f));
         }
-        else if(Physics2D.OverlapCircle(tileCheck.position, 0.1f, leftTile))
+        else if(Physics2D.OverlapCircle(destinationTile.position, 0.1f, leftTile))
         {
+            inputEnabled = false;
             ChangeDirection(2,false);
             Movement(new Vector3(-1f, 0f, 0f));
         }
-        else if(Physics2D.OverlapCircle(tileCheck.position, 0.1f, rightTile))
+        else if(Physics2D.OverlapCircle(destinationTile.position, 0.1f, rightTile))
         {
+            inputEnabled = false;
             ChangeDirection(4,false);
             Movement(new Vector3(1f, 0f, 0f));
         }
-        else if(Physics2D.OverlapCircle(tileCheck.position, 0.1f, downTile))
+        else if(Physics2D.OverlapCircle(destinationTile.position, 0.1f, downTile))
         {
+            inputEnabled = false;
             ChangeDirection(1,false);
             Movement(new Vector3(0f, -1f, 0f));
         }
-        else if(Physics2D.OverlapCircle(tileCheck.position, 0.1f, teleporterTile))
+        else if(Physics2D.OverlapCircle(destinationTile.position, 0.1f, teleporterTile))
         {
-            tileCheck.position = startingPosition;
+            destinationTile.position = startingPosition;
             transform.position = startingPosition;
+        }
+        else 
+        {
+            inputEnabled = true;
         }
     }
 
     private void Movement(Vector3 moveDirection)
     {
-        Vector3 checkTile = tileCheck.position + moveDirection;
-        Debug.Log(Physics2D.OverlapCircle(checkTile, 0.2f, obstructionTile));
-        
+        Vector3 checkTile = destinationTile.position + moveDirection;
         if(!Physics2D.OverlapCircle(checkTile, 0.1f, obstructionTile))
         {
             anime.SetTrigger("isMoving");
-            tileCheck.position = checkTile;
-            Debug.Log(Physics2D.OverlapCircle(checkTile, 0.2f, waterTile));
-            if(Physics2D.OverlapCircle(checkTile, 0.1f, waterTile))
+            destinationTile.position = checkTile;
+            if(Physics2D.OverlapCircle(checkTile, 0.1f, slidingTile))
             {
                 Movement(moveDirection);
             }
         }
         else 
         {
+            inputEnabled = true;
             anime.SetTrigger("isTurning");
         }
         
